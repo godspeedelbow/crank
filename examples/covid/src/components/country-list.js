@@ -1,29 +1,33 @@
 /** @jsx createElement */
-import { createElement } from "@bikeshaving/crank";
+import { createElement, Fragment } from "@bikeshaving/crank";
 
 import { COVID_API_BASE_URL } from "../constants";
 import { sortBy } from "lodash-es";
-import { api } from "../utils";
+import { api, countriesGenerator } from "../utils";
 import classnames from "classnames";
 import { LoadingIndicator } from "./loading-indicator";
 import { Suspense } from "./suspense";
 
 export async function CountryList({ onClick, selected }) {
   return (
-    <Suspense fallback={<LoadingIndicator />}>
-      <CountryListRenderer onClick={onClick} selected={selected} />
-    </Suspense>
+    <Fragment>
+      <ImFeelingLucky onClick={onClick} />
+      <Suspense fallback={<LoadingIndicator />}>
+        <CountryListRenderer onClick={onClick} selected={selected} />
+      </Suspense>
+    </Fragment>
   );
 }
 
 async function* CountryListRenderer({ onClick, selected }) {
-  const res = await api(COVID_API_BASE_URL + "/countries");
-  const countries = await res.json().then((items) => sortBy(items, "Country"));
-
+  const countries = [];
+  for await (const country of countriesGenerator()) {
+    countries.push(country);
+  }
   for await ({ selected } of this) {
     yield (
       <div class="country-list">
-        {countries.map((country) => (
+        {sortBy([...countries], "Country").map((country) => (
           <div
             key={country.Slug}
             class={classnames(
@@ -37,5 +41,21 @@ async function* CountryListRenderer({ onClick, selected }) {
         ))}
       </div>
     );
+  }
+}
+
+function* ImFeelingLucky({ onClick }) {
+  const countries = countriesGenerator();
+
+  let country = { Country: "no country yet" };
+  const onclick = async () => {
+    country = (await countries.next()).value;
+    onClick(country);
+    this.refresh();
+  };
+
+  while (true) {
+    console.log(`*** country`, country);
+    yield <button onclick={onclick}>I'm feeling lucky</button>;
   }
 }

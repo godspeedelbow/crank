@@ -1,3 +1,5 @@
+import { COVID_API_BASE_URL } from "../constants";
+
 const FAST = 0; //ms
 const SLOW = 5 * 1000; //ms
 
@@ -11,4 +13,12 @@ export function api(url, { slow } = {}) {
       slow ? SLOW : FAST
     );
   });
+}
+
+export async function* countriesGenerator() {
+  const res = await api(COVID_API_BASE_URL + "/countries");
+  const countries = await res.json();
+
+  console.log(`*** countries`, countries);
+  yield* countries;
 }
