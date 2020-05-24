@@ -1,12 +1,12 @@
 /** @jsx createElement */
 import { createElement, Fragment } from "@bikeshaving/crank";
 
-import { COVID_API_BASE_URL } from "../constants";
 import { sortBy } from "lodash-es";
-import { api, countriesGenerator } from "../utils";
+import { countriesGenerator } from "../utils";
 import classnames from "classnames";
 import { LoadingIndicator } from "./loading-indicator";
 import { Suspense } from "./suspense";
+import { ImFeelingLucky } from "./im-feeling-lucky";
 
 export async function CountryList({ onClick, selected }) {
   return (
@@ -41,21 +41,5 @@ async function* CountryListRenderer({ onClick, selected }) {
         ))}
       </div>
     );
-  }
-}
-
-function* ImFeelingLucky({ onClick }) {
-  const countries = countriesGenerator();
-
-  let country = { Country: "no country yet" };
-  const onclick = async () => {
-    country = (await countries.next()).value;
-    onClick(country);
-    this.refresh();
-  };
-
-  while (true) {
-    console.log(`*** country`, country);
-    yield <button onclick={onclick}>I'm feeling lucky</button>;
   }
 }

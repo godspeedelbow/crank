@@ -1,13 +1,11 @@
 /** @jsx createElement */
 import { createElement, Fragment } from "@bikeshaving/crank";
-import { last, first } from "lodash-es";
 import { format } from "date-fns";
 
 import { Statistic, Title } from "./";
-import { api } from "../utils";
+import { CountryData } from "../utils";
 import { LoadingIndicator } from "./loading-indicator";
 import { Suspense } from "./suspense";
-import { COVID_API_BASE_URL } from "../constants";
 
 export async function Country({ country }) {
   return (
@@ -19,15 +17,16 @@ export async function Country({ country }) {
 
 export async function* CountryRenderer({ country }) {
   const { Slug } = country;
-  const countryData = await new CountryData(Slug).load();
-  const backwards = countryData.backwards();
-  let day = backwards.next().value;
+  const countryData = (await new CountryData(Slug).load()).backwards();
+
+  let day = countryData.next().value;
   let done = false;
+
   const onclick = () => {
-    const next = backwards.next();
+    const next = countryData.next();
 
     done = next.done;
-    day = next.value || day;
+    day = next.value || day; // keep first day
 
     this.refresh();
   };
@@ -59,27 +58,5 @@ export async function* CountryRenderer({ country }) {
         )}
       </Fragment>
     );
-  }
-}
-
-class CountryData {
-  constructor(slug) {
-    this.slug = slug;
-  }
-  async load() {
-    const data = await api(`${COVID_API_BASE_URL}/live/country/${this.slug}`, {
-      slow: false,
-    })
-      .then((response) => response.json())
-      .catch((error) => console.log("error", error));
-
-    this.data = data;
-
-    return this;
-  }
-  *backwards() {
-    for (const day of this.data.reverse()) {
-      yield day;
-    }
   }
 }

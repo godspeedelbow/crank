@@ -19,6 +19,27 @@ export async function* countriesGenerator() {
   const res = await api(COVID_API_BASE_URL + "/countries");
   const countries = await res.json();
 
-  console.log(`*** countries`, countries);
   yield* countries;
+}
+
+export class CountryData {
+  constructor(slug) {
+    this.slug = slug;
+  }
+  async load() {
+    const data = await api(`${COVID_API_BASE_URL}/live/country/${this.slug}`, {
+      slow: false,
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log("error", error));
+
+    this.data = data;
+
+    return this;
+  }
+  *backwards() {
+    for (const day of this.data.reverse()) {
+      yield day;
+    }
+  }
 }
