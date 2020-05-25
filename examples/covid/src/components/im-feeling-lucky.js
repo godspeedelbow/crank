@@ -6,14 +6,18 @@ import { countriesGenerator } from "../utils";
 export async function* ImFeelingLucky({ onClick }) {
   const countries = countriesGenerator();
 
-  let country;
-  const onclick = async () => {
+  const onclick = (country) => {
     onClick(country);
     this.refresh();
   };
 
   for await (const _ of this) {
-    country = (await countries.next()).value;
-    yield <button onclick={onclick}>I'm feeling lucky</button>;
+    const { next: country, done } = await countries.next();
+
+    yield done ? (
+      <i>You're out of luck!</i>
+    ) : (
+      <button onclick={() => onclick(country)}>I'm feeling lucky</button>
+    );
   }
 }
