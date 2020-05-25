@@ -33,7 +33,7 @@ export class CountryData {
       .then((response) => response.json())
       .catch((error) => console.log("error", error));
 
-    this.data = data;
+    this.data = data.filter(({ Province, City }) => !Province && !City);
 
     return this;
   }
